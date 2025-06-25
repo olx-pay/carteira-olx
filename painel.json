@@ -1,0 +1,9 @@
+{
+  "saldoDisponivel": 0,
+  "saldoReceber": 0,
+  "taxaPagar": 0,
+  "nomeMotorista": "",
+  "placaCarro": "",
+  "modeloMotorista": "",
+  "ligado": false
+} 

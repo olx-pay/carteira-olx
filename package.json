@@ -1,0 +1,25 @@
+{
+  "name": "olx-carteira-protected",
+  "version": "1.0.0",
+  "description": "Sistema de carteira OLX com proteção completa",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "start-protected": "node start-protected.js",
+    "backup": "node server-backup.js backup",
+    "restore": "node server-backup.js restore",
+    "check": "node server-backup.js check",
+    "list": "node server-backup.js list"
+  },
+  "keywords": [
+    "olx",
+    "carteira",
+    "proteção",
+    "backup"
+  ],
+  "author": "Sistema de Proteção",
+  "license": "MIT",
+  "dependencies": {
+    "ws": "^8.18.2"
+  }
+}

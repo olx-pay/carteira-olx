@@ -1,0 +1,46 @@
+# Excluir pastas com nomes muito longos
+fundingchoicesmessages.google.com/
+www.olx.com.br/
+_DataURI/
+
+# Arquivos do sistema
+.DS_Store
+Thumbs.db
+
+# Arquivos temporários
+*.tmp
+*.temp
+
+# Logs
+*.log
+
+# Arquivos de IDE
+.vscode/
+.idea/
+
+# Dependências (se houver)
+node_modules/
+npm-debug.log*
+
+# Arquivos de cache
+<<<<<<< HEAD
+.cache/
+
+# Node modules
+node_modules/
+
+# Variáveis de ambiente
+.env
+
+# Backups automáticos
+_backups/
+
+# Uploads de imagens e arquivos temporários
+uploads/
+
+# Executáveis e arquivos baixados
+ngrok.exe
+ngrok.zip 
+=======
+.cache/ 
+>>>>>>> 3de5ffe (Primeiro commit do projeto OLX finalizado)

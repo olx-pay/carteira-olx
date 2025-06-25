@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parabéns!</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
+        
+        :root {
+            --olx-purple: #6E0AD6;
+            --olx-orange: #F28000;
+            --olx-green: #2A9200;
+            --text-color: #333;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f7f8f9;
+        }
+
+        .container {
+            text-align: center;
+            padding: 2rem;
+            max-width: 400px;
+            width: 100%;
+        }
+
+        .logo {
+            width: 120px;
+            margin-bottom: 2rem;
+        }
+
+        .status-message {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--olx-green);
+            margin-bottom: 1rem;
+        }
+
+        .status-message .icon {
+            width: 24px;
+            height: 24px;
+        }
+
+        .info-text {
+            color: var(--text-color);
+            font-size: 1rem;
+            line-height: 1.5;
+            margin-bottom: 2.5rem;
+        }
+
+        .action-button {
+            background-color: var(--olx-orange);
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 999px;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            transition: background-color 0.2s;
+        }
+
+        .action-button:hover {
+            background-color: #d97400;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <img src="src/assets/images/logo.png" alt="OLX Logo" class="logo">
+        
+        <div class="status-message">
+            <svg class="icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"></path></svg>
+            <span>Parabéns, Você Desapegou!</span>
+        </div>
+
+        <p class="info-text">
+            Olá, Recebemos o pagamento do produto, informamos que aguarde até o veículo ser solicitado em sua residência.
+        </p>
+
+        <a href="carteira.html" class="action-button">Ver detalhes da venda</a>
+    </div>
+
+</body>
+</html> 
